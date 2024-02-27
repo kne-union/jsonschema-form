@@ -1,3 +1,28 @@
+
+# jsonschema-form
+
+
+### 安装
+
+```shell
+npm i --save @kne/jsonschema-form
+```
+
+
+### 概述
+
+这里填写组件概要说明
+
+
+### 示例
+
+#### 示例代码
+
+- 这里填写示例标题
+- 这里填写示例说明
+- jsonSchemaForm(@kne/jsonschema-form),(@kne/jsonschema-form/dist/index.css)
+
+```jsx
 const {default: JSONSchemaForm} = jsonSchemaForm;
 const BaseExample = () => {
     return <JSONSchemaForm onSubmit={(data) => {
@@ -50,3 +75,12 @@ const BaseExample = () => {
 };
 
 render(<BaseExample/>);
+
+```
+
+
+### API
+
+|属性名|说明|类型|默认值|
+|  ---  | ---  | --- | --- |
+
