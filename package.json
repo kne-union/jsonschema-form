@@ -1,8 +1,8 @@
 {
   "name": "@kne/jsonschema-form",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
-    "@kne/react-form-antd": "^3.1.2",
+    "@kne/react-form-antd": "^4.0.0",
     "classnames": "^2.5.1"
   },
   "scripts": {
