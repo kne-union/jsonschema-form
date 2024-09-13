@@ -8,9 +8,9 @@
       "scope": [
         {
           "name": "jsonSchemaForm",
-          "packageName": "@kne/jsonschema-form"
+          "packageName": "@kne/current-lib_jsonschema-form"
         },{
-          "packageName": "@kne/jsonschema-form/dist/index.css"
+          "packageName": "@kne/current-lib_jsonschema-form/dist/index.css"
         }
       ],
       "__scope_notes": {
