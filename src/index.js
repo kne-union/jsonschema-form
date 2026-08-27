@@ -1,131 +1,47 @@
-import React, {useMemo, useRef} from 'react';
-import {Button, Empty, Row, Col} from 'antd';
-import Form, {
-    Input, InputNumber, Switch, Select, TextArea, GroupList, SubmitButton, ResetButton
-} from '@kne/react-form-antd';
-import InfoPage from './InfoPage';
-import listStyle from './list.module.scss';
-import formStyle from './form.module.scss';
-import '@kne/react-form-antd/dist/index.css';
+import React, { useMemo } from 'react';
+import { SchemaRenderer } from '@kne/form-creator';
+import { jsonSchemaToFormCreatorSchema } from './convert/jsonSchemaToFormCreatorSchema';
+import '@kne/form-creator/dist/index.css';
+import '@kne/form-info/dist/index.css';
 
-const renderSchema = (schema, {column, gap, labelHidden}) => {
-    if (schema.type === 'object') {
-        const children = <Row gutter={[gap, 0]}>
-            {Object.keys(schema.properties).map((property) => {
-                const item = schema.properties[property];
-                //
-                return renderSchema(Object.assign({}, item, {
-                    propertyRequired: (schema.required || []).indexOf(property) > -1,
-                    propertyName: [schema.propertyName, property].filter((key) => !!key).join('.')
-                }), {column, gap});
-            })}
-        </Row>;
-        return <Col key={schema.propertyName || 'root'} span={24}>{schema.propertyName ?
-            <InfoPage.Part title={schema.title}>
-                {children}
-            </InfoPage.Part> : children}</Col>;
-    }
-    if (schema.type === 'array') {
-        return <Col key={schema.propertyName || 'root'} span={24}>
-            <SchemaArray schema={schema} column={column} gap={gap}/>
-        </Col>;
-    }
-    const rule = [schema.propertyRequired ? 'REQ' : '', schema.pattern ? `REG_EXP-${schema.pattern}` : '', (schema.hasOwnProperty('minLength') || schema.hasOwnProperty('maxLength')) ? `LEN-${schema.minLength}${schema.hasOwnProperty('maxLength') ? `-${schema.maxLength}` : ''}` : ''].join(' ');
-    if (Array.isArray(schema.enum) && schema.enum.length > 0) {
-        return <Col key={schema.propertyName} span={Math.round(24 / column)}>
-            <Select name={schema.propertyName} label={schema.title} rule={rule} labelHidden={labelHidden}
-                    value={schema.default}
-                    options={schema.enum.map((item) => ['integer', 'number', 'string'].indexOf(schema.type) > -1 ? ({
-                        label: item, value: item
-                    }) : item)}/>
-        </Col>
-    }
-    if (schema.type === 'string' && schema.maxLength > 20) {
-        return <Col key={schema.propertyName} span={24}>
-            <TextArea name={schema.propertyName} label={schema.title} rule={rule} labelHidden={labelHidden}
-                      value={schema.default} maxLength={schema.maxLength} showCount allowClear
-                      autoSize={{minRows: 2}}/>
-        </Col>
-    }
-    if (schema.type === 'string') {
-        return <Col key={schema.propertyName} span={Math.round(24 / column)}>
-            <Input name={schema.propertyName} labelHidden={labelHidden}
-                   label={schema.title} rule={rule}
-                   value={schema.default}/>
-        </Col>;
-    }
-    if (schema.type === 'boolean') {
-        return <Col key={schema.propertyName} span={Math.round(24 / column)}>
-            <Switch name={schema.propertyName} labelHidden={labelHidden}
-                    label={schema.title} rule={rule}
-                    checked={schema.default}/>
-        </Col>
-    }
-    if (['integer', 'number'].indexOf(schema.type) > -1) {
-        return <Col key={schema.propertyName} span={Math.round(24 / column)}>
-            <InputNumber name={schema.propertyName} labelHidden={labelHidden}
-                         label={schema.title} rule={rule}
-                         value={schema.default}/>
-        </Col>;
-    }
-    return null;
-};
+/**
+ * 将 JSON Schema 转为 form-creator Schema 并用 SchemaRenderer 渲染。
+ *
+ * @param {object} props
+ * @param {object} props.schema JSON Schema
+ * @param {number} [props.column=2]
+ * @param {number} [props.gap=24]
+ * @param {object} [props.formProps] 传给 SchemaRenderer / Form
+ * @param {Function} [props.onSubmit] 简写：写入 formProps.onSubmit
+ * @param {object} [props.rules] 额外校验规则（透传 formProps.rules）
+ * @param {React.ReactNode|false} [props.footer] 兼容旧 API：false 时隐藏操作区
+ * @param {React.ReactNode|object|false} [props.actions] SchemaRenderer actions
+ */
+const JSONSchemaForm = ({ schema, column = 2, gap = 24, formProps, onSubmit, rules, footer, actions, ...rest }) => {
+  const creatorSchema = useMemo(() => jsonSchemaToFormCreatorSchema(schema, { column, gap }), [schema, column, gap]);
 
-const SchemaArray = ({schema, column, gap}) => {
-    const ref = useRef(null);
-    return <InfoPage.Part className={listStyle['list-part']} title={schema.title}
-                          extra={<Button type="link" onClick={() => {
-                              ref.current.onAdd();
-                          }}>添加</Button>}>
-        <GroupList ref={ref} name={schema.propertyName} defaultLength={1}
-                   empty={<Empty description=""><Button type="primary" onClick={() => {
-                       ref.current.onAdd();
-                   }}>添加</Button></Empty>}>{(key, {
-            index, onRemove
-        }) => {
-            const isBasic = ['array', 'object'].indexOf(schema?.items?.type) === -1;
-            return <div key={key} className={listStyle["list-item"]}>
-                <InfoPage.Part className={listStyle["list-item-part"]} title={`${schema.title} ${index + 1}`}
-                               extra={<Button type="link" danger onClick={onRemove}>删除</Button>}>
-                    <Row gutter={[gap, 0]}>
-                        {renderSchema(Object.assign({}, schema.items, isBasic ? {
-                            title: schema.title, propertyName: schema.propertyName
-                        } : {}), Object.assign({}, {column, gap}, isBasic ? {
-                            column: 1, labelHidden: true
-                        } : {}))}
-                    </Row>
-                </InfoPage.Part>
-            </div>
-        }}</GroupList>
-    </InfoPage.Part>;
-};
+  const mergedFormProps = useMemo(
+    () => ({
+      ...rest,
+      ...formProps,
+      ...(onSubmit ? { onSubmit } : {}),
+      ...(rules ? { rules: { ...(formProps?.rules || {}), ...rules } } : {})
+    }),
+    [rest, formProps, onSubmit, rules]
+  );
 
-const JSONSchemaForm = ({column, gap, schema, rules, footer, ...props}) => {
-    const formChildren = useMemo(() => {
-        return renderSchema(schema, {column, gap});
-    }, [schema]);
-    return <Form className={formStyle['form']} {...props} rules={Object.assign({}, rules, {
-        REG_EXP: (value, pattern) => {
-            const regExp = new RegExp(pattern);
-            return {
-                result: regExp.test(value), msg: '%s不符合规则'
-            };
-        }
-    })}>
-        <InfoPage>
-            <Row gutter={[gap, 0]}>
-                {formChildren}
-            </Row>
-            {footer || <Row gutter={[gap, 0]} justify="center">
-                <Col><SubmitButton>保存</SubmitButton></Col>
-                <Col><ResetButton>重置</ResetButton></Col>
-            </Row>}
-        </InfoPage>
-    </Form>;
+  const actionProps = footer === false || actions === false ? { showActions: false } : actions !== undefined ? { actions } : footer ? { actions: footer } : {};
+
+  return <SchemaRenderer schema={creatorSchema} formProps={mergedFormProps} {...actionProps} />;
 };
 
 JSONSchemaForm.defaultProps = {
-    column: 2, gap: 24, type: 'inner'
+  column: 2,
+  gap: 24
 };
 
+export { jsonSchemaToFormCreatorSchema };
+export { resolveRef } from './convert/resolveRef';
+export { mergeAllOf } from './convert/mergeAllOf';
+export { fieldFromSchema, FORMAT_FIELD_MAP } from './convert/fieldFromSchema';
 export default JSONSchemaForm;
