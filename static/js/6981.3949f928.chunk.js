@@ -1,2 +1,0 @@
-"use strict";(globalThis.webpackChunk_jsonschema_form_1_0_0||=[]).push([[6981],{70701(e,o,s){s.r(o);const m={JsonschemaForm:s(69666).A};s.d(o,["default",0,m,"manifest",0,{name:"jsonschema-form",version:"1.0.0","open-version":!0,"public-url":"/jsonschema-form",modules:[{name:"jsonschema-form",baseDir:"/home/runner/work/jsonschema-form/jsonschema-form",description:"\u5c06 JSON Schema \u8f6c\u6362\u4e3a @kne/form-creator Schema \u5e76\u6e32\u67d3\u8868\u5355",packageName:"@kne/jsonschema-form"}]}])}}]);
-//# sourceMappingURL=6981.3949f928.chunk.js.map
