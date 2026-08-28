@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { SchemaRenderer } from '@kne/form-creator';
 import { jsonSchemaToFormCreatorSchema } from './convert/jsonSchemaToFormCreatorSchema';
 import '@kne/form-creator/dist/index.css';
-import '@kne/form-info/dist/index.css';
 
 /**
  * 将 JSON Schema 转为 form-creator Schema 并用 SchemaRenderer 渲染。
@@ -33,11 +32,6 @@ const JSONSchemaForm = ({ schema, column = 2, gap = 24, formProps, onSubmit, rul
   const actionProps = footer === false || actions === false ? { showActions: false } : actions !== undefined ? { actions } : footer ? { actions: footer } : {};
 
   return <SchemaRenderer schema={creatorSchema} formProps={mergedFormProps} {...actionProps} />;
-};
-
-JSONSchemaForm.defaultProps = {
-  column: 2,
-  gap: 24
 };
 
 export { jsonSchemaToFormCreatorSchema };
